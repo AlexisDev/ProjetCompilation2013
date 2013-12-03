@@ -49,7 +49,6 @@ Comment   = "#!" [^*] ~"!#" | "#!" "!"+ "#"
 "."          { return createSymbol(CalculetteSymbol.POINT);     }
 "@"          { return createSymbol(CalculetteSymbol.AROBASE);   }
 ":"          { return createSymbol(CalculetteSymbol.AFFECT);	}
-"\n"         { return createSymbol(CalculetteSymbol.NL);        }
 
 
 /* -------------------------------------------------
@@ -87,6 +86,7 @@ Comment   = "#!" [^*] ~"!#" | "#!" "!"+ "#"
 "Reel"               { return createSymbol(CalculetteSymbol.REEL);        }
 
 "Enumeration"        { return createSymbol(CalculetteSymbol.ENUMERATION); }
+"Rien"               { return createSymbol(CalculetteSymbol.RIEN);}
 
 /* -------------------------------------------------
         Types complexes
@@ -119,6 +119,8 @@ Comment   = "#!" [^*] ~"!#" | "#!" "!"+ "#"
 /* -------------------------------------------------
         Bloc
    ------------------------------------------------- */
+"Fonction"             { return createSymbol(CalculetteSymbol.FONCTION);}
+"Fin-fonction"         { return createSymbol(CalculetteSymbol.FINFONCTION);} 
 "Debut"                { return createSymbol(CalculetteSymbol.DEBUT); }
 "Fin"                  { return createSymbol(CalculetteSymbol.FIN);   }
 
@@ -136,4 +138,5 @@ Comment   = "#!" [^*] ~"!#" | "#!" "!"+ "#"
 
 /* -------------------------------------------------
    ------------------------------------------------- */
-. 	     { }
+[a-zA-Z][a-zA-Z0-9]* { return createSymbol(CalculetteSymbol.CHAINE_CARACTERES, new String( yytext() )); }
+.|\n 	     { }

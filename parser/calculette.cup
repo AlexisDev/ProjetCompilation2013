@@ -15,23 +15,26 @@ public void unrecovered_syntax_error(Symbol cur_token) throws java.lang.Exceptio
 
 :}
 
-terminal PAR_OUV, PAR_FER, PLUS, MOINS, FOIS, DIVISER, MODULO, MOINS_U, VIRGULE, CRO_OUV, CRO_FER, POINT, AROBASE, AFFECT, NL;
+terminal PAR_OUV, PAR_FER, PLUS, MOINS, FOIS, DIVISER, MODULO, MOINS_U, VIRGULE, CRO_OUV, CRO_FER, POINT, AROBASE, AFFECT;
 terminal EGAL, DIFF, IE, SE, INF, SUP;
 terminal ET, OU, NON, OUX, NOU, NET;
-terminal ENTIER, GROS_ENTIER, ENTIER_POSITIF, GROS_ENTIER_POSITIF, BOOLEEN, CARACTERE, REEL, ENUMERATION;
+terminal ENTIER, GROS_ENTIER, ENTIER_POSITIF, GROS_ENTIER_POSITIF, BOOLEEN, CARACTERE, REEL, ENUMERATION, RIEN;
 terminal CHAINE, TABLEAU, POINTEUR;
 terminal SI, ALORS, SINONSI, SINON, FINSI;
 terminal POUR, DANS, FAIRE, FINPOUR, TANTQUE, FINTANTQUE;
-terminal DEBUT, FIN;
+terminal DEBUT, FIN, FONCTION, FINFONCTION;
 
 terminal Integer VALENTIER;
 terminal Double  VALREEL;
 terminal Boolean VALBOOLEEN;
+terminal String  CHAINE_CARACTERES;
 
+non terminal bloc;
 non terminal instructions, instruction;
+non terminal declaration;
 
-non terminal Float[] comp;
-non terminal Float expr, ternaire;
+non terminal Double[] comp;
+non terminal Double expr;
 non terminal Boolean cond;
 
 precedence left PLUS, MOINS;
@@ -44,40 +47,31 @@ precedence left ET, OU;
 precedence left EGAL, DIFF;
 precedence left NON;
 
-start with instructions;
+start with bloc;
 
-instructions ::= 
-	  instructions instruction
-	| instruction
-	;
+bloc ::=
+     DEBUT instructions FIN         {: System.out.println("Debut instructions Fin"); :}
+     ;
 
-instruction ::=
-	  expr:e NL			{: System.out.println(e); :}
-	| comp:c NL			{: System.out.println(String.format("%.1f+%.1fi", c[0], c[1])); :}
-	| cond:c NL			{: System.out.println(c); :}
-	| ternaire:t NL		{: System.out.println(t); :}
-	| error	 			{: System.err.println("Erreur rencontrée, l'analyse continue..."); :}
-	;
+instructions ::=
+       instructions instruction
+     | instruction
+     | error
+     |
+     ;
 
+
+/*
 expr 	  ::=
-          expr:e1 PLUS expr:e2		{: RESULT = e1 + e2;	  :}    
+     expr:e1 PLUS expr:e2		{: System.out.println(e1 + "+" + e2); :}
 	| expr:e1 MOINS expr:e2		{: RESULT = e1 - e2;  	  :}    
         | expr:e1 FOIS expr:e2		{: RESULT = e1 * e2;  	  :}    
         | expr:e1 DIVISER expr:e2 	{: RESULT = e1 / e2;  	  :}
 	| expr:e1 MODULO expr:e2	{: RESULT = e1 % e2;  	  :}    
-        | PAR_OUV  expr:e PAR_FER 		{: RESULT =  e;	      	  :}    
-        | MOINS expr:e {: RESULT = -e; :} %prec MOINS_U
-	| VALREEL:n     	  	       	{: RESULT =  n;		  :}
+        | PAR_OUV  expr:e PAR_FER 	{: RESULT =  e;	      	  :}    
+        | MOINS expr:e                  {: RESULT = -e; :} %prec MOINS_U
+	| VALREEL:n     	  	{: RESULT =  n;		  :}
         ;
-
-comp	  ::=
-	  comp:c1 PLUS comp:c2		{: RESULT = new Float[] { c1[0]+c2[0], c1[1]+c2[1] }; :}
-	| comp:c1 MOINS comp:c2		{: RESULT = new Float[] { c1[0]-c2[0], c1[1]-c2[1] }; :}
-	| comp:c1 FOIS comp:c2		{: RESULT = new Float[] { c1[0]*c2[0]-c1[1]*c2[1], c1[1]*c2[0]+c1[0]*c2[1] }; :}
-	| PAR_OUV  comp:c PAR_FER		{: RESULT = c; :}
-	| MOINS comp:c {: RESULT = new Float[] { -c[0], -c[1] }; :} %prec MOINS_U
-	| PAR_OUV VALREEL:n1 VIRGULE VALREEL:n2	PAR_FER {: RESULT = new Float[] { n1, n2 }; :}
-	;
 
 cond	  ::=
 	  cond:c1 ET  cond:c2		{: RESULT = (c1 && c2);   :}
@@ -86,14 +80,10 @@ cond	  ::=
 	| expr:e1 SE   expr:e2		{: RESULT = (e1 >= e2);   :}
 	| expr:e1 INF   expr:e2		{: RESULT = (e1 < e2);    :}
 	| expr:e1 SUP   expr:e2		{: RESULT = (e1 > e2);    :}
-	| cond:c1 EGAL   cond:c2		{: RESULT = (c1 == c2);   :}
+	| cond:c1 EGAL   cond:c2	{: RESULT = (c1 == c2);   :}
 	| cond:c1 DIFF cond:c2		{: RESULT = (c1 != c2);   :}
-	| PAR_OUV cond:c PAR_FER		{: RESULT =  c;		  :}
+        | PAR_OUV cond:c PAR_FER	{: RESULT =  c;		  :}
 	| NON cond:c   			{: RESULT = !c;		  :}
 	| VALBOOLEEN:b			{: RESULT =  b; 	  :}
 	;
-
-ternaire  ::=
-	  cond:c  ALORS expr:e1 SINON expr:e2	{: RESULT = c	    ? e1 : e2;	:}
-	| expr:e0 ALORS expr:e1 SINON expr:e2	{: RESULT = (e0!=0) ? e1 : e2;	:}
-	;
+*/

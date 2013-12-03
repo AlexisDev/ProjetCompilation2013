@@ -1,0 +1,94 @@
+// CUP specification for a simple expression evaluator (w/ actions)
+
+import java_cup.runtime.*;
+import java.lang.Number;
+
+parser code {:
+
+public void syntax_error(Symbol cur_token) {
+       report_error(String.format("Erreur syntaxique @ l:%03d,c:%03d", cur_token.left, cur_token.right), null);
+}
+
+public void unrecovered_syntax_error(Symbol cur_token) throws java.lang.Exception {
+       report_fatal_error("Impossible de continuer l'analyse !", null);
+}
+
+:}
+
+terminal LPAR, RPAR, PLUS, MINUS, TIMES, DIVIDE, MODULO, MINUS_U, COMA, SEMIC;
+terminal EQ, DIFF, LE, GE, LT, GT;
+terminal AND, OR, NOT;
+terminal THEN, ELSE;
+
+terminal Float NUMBER;
+terminal Boolean BOOLEAN;
+
+non terminal statements, statement;
+
+non terminal Float[2] comp;
+non terminal Float expr, ternaire;
+non terminal Boolean cond;
+
+precedence left PLUS, MINUS;
+precedence left TIMES, DIVIDE, MODULO;
+precedence left MINUS_U;
+
+precedence left LT, GT;
+precedence left LE, GE;
+precedence left AND, OR;
+precedence left EQ, DIFF;
+precedence left NOT;
+
+start with statements;
+
+statements ::= 
+	  statements statement
+	| statement
+	;
+
+statement ::=
+	  expr:e SEMIC			{: System.out.println(e); :}
+	| comp:c SEMIC			{: System.out.println(String.format("%.1f+%.1fi", c[0], c[1])); :}
+	| cond:c SEMIC			{: System.out.println(c); :}
+	| ternaire:t SEMIC		{: System.out.println(t); :}
+	| error	 			{: System.err.println("Erreur rencontrée, l'analyse continue..."); :}
+	;
+
+expr 	  ::=
+          expr:e1 PLUS expr:e2		{: RESULT = e1 + e2;	  :}    
+	| expr:e1 MINUS expr:e2		{: RESULT = e1 - e2;  	  :}    
+        | expr:e1 TIMES expr:e2		{: RESULT = e1 * e2;  	  :}    
+        | expr:e1 DIVIDE expr:e2 	{: RESULT = e1 / e2;  	  :}
+	| expr:e1 MODULO expr:e2	{: RESULT = e1 % e2;  	  :}    
+        | LPAR  expr:e RPAR 		{: RESULT =  e;	      	  :}    
+        | MINUS expr:e {: RESULT = -e; :} %prec MINUS_U
+	| NUMBER:n     	  	       	{: RESULT =  n;		  :}
+        ;
+
+comp	  ::=
+	  comp:c1 PLUS comp:c2		{: RESULT = new Float[] { c1[0]+c2[0], c1[1]+c2[1] }; :}
+	| comp:c1 MINUS comp:c2		{: RESULT = new Float[] { c1[0]-c2[0], c1[1]-c2[1] }; :}
+	| comp:c1 TIMES comp:c2		{: RESULT = new Float[] { c1[0]*c2[0]-c1[1]*c2[1], c1[1]*c2[0]+c1[0]*c2[1] }; :}
+	| LPAR  comp:c RPAR		{: RESULT = c; :}
+	| MINUS comp:c {: RESULT = new Float[] { -c[0], -c[1] }; :} %prec MINUS_U
+	| LPAR NUMBER:n1 COMA NUMBER:n2	RPAR {: RESULT = new Float[] { n1, n2 }; :}
+	;
+
+cond	  ::=
+	  cond:c1 AND  cond:c2		{: RESULT = (c1 && c2);   :}
+	| cond:c1 OR   cond:c2		{: RESULT = (c1 || c2);   :}
+	| expr:e1 LE   expr:e2		{: RESULT = (e1 <= e2);   :}
+	| expr:e1 GE   expr:e2		{: RESULT = (e1 >= e2);   :}
+	| expr:e1 LT   expr:e2		{: RESULT = (e1 < e2);    :}
+	| expr:e1 GT   expr:e2		{: RESULT = (e1 > e2);    :}
+	| cond:c1 EQ   cond:c2		{: RESULT = (c1 == c2);   :}
+	| cond:c1 DIFF cond:c2		{: RESULT = (c1 != c2);   :}
+	| LPAR cond:c RPAR		{: RESULT =  c;		  :}
+	| NOT cond:c   			{: RESULT = !c;		  :}
+	| BOOLEAN:b			{: RESULT =  b; 	  :}
+	;
+
+ternaire  ::=
+	  cond:c  THEN expr:e1 ELSE expr:e2	{: RESULT = c	    ? e1 : e2;	:}
+	| expr:e0 THEN expr:e1 ELSE expr:e2	{: RESULT = (e0!=0) ? e1 : e2;	:}
+	;

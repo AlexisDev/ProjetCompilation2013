@@ -8,9 +8,10 @@ import java_cup.runtime.Symbol;
 %cup
 %8bit
 
-Number    = "-"?[[:digit:]]+(\.[[:digit:]]+)?([Ee][+-]?[[:digit:]]+)?
-Boolean   = "true" | "false"
-Comment   = "/*" [^*] ~"*/" | "/*" "*"+ "/"
+Entier    = [[:digit:]]
+Reel      = "-"?[[:digit:]]+(\.[[:digit:]]+)?([Ee][+-]?[[:digit:]]+)?
+Boolean   = "vrai" | "faux"
+Comment   = "#!" [^*] ~"!#" | "#!" "!"+ "#"
 
 %{
     private void debug(int l, int c, String s) {
@@ -36,45 +37,97 @@ Comment   = "/*" [^*] ~"*/" | "/*" "*"+ "/"
         Operateurs
    ------------------------------------------------- */
 "+"    	     { return createSymbol(CalculetteSymbol.PLUS);	}
-"-"    	     { return createSymbol(CalculetteSymbol.MINUS);	}
-"*"          { return createSymbol(CalculetteSymbol.TIMES);	}
-"/"          { return createSymbol(CalculetteSymbol.DIVIDE);	}
+"-"    	     { return createSymbol(CalculetteSymbol.MOINS);	}
+"*"          { return createSymbol(CalculetteSymbol.FOIS);	}
+"/"          { return createSymbol(CalculetteSymbol.DIVISER);	}
 "%"	     { return createSymbol(CalculetteSymbol.MODULO);	}
-"("          { return createSymbol(CalculetteSymbol.LPAR);	}
-")"          { return createSymbol(CalculetteSymbol.RPAR);	}
-";"          { return createSymbol(CalculetteSymbol.SEMIC);	}
-","	     { return createSymbol(CalculetteSymbol.COMA);	}
+"("          { return createSymbol(CalculetteSymbol.PAR_OUV);	}
+")"          { return createSymbol(CalculetteSymbol.PAR_FER);	}
+","	     { return createSymbol(CalculetteSymbol.VIRGULE);	}
+"["          { return createSymbol(CalculetteSymbol.CRO_OUV);   }
+"]"          { return createSymbol(CalculetteSymbol.CRO_FER);   }
+"."          { return createSymbol(CalculetteSymbol.POINT);     }
+"@"          { return createSymbol(CalculetteSymbol.AROBASE);   }
+":"          { return createSymbol(CalculetteSymbol.AFFECT);	}
+"\n"         { return createSymbol(CalculetteSymbol.NL);        }
 
 
 /* -------------------------------------------------
         Comparaison
    ------------------------------------------------- */
-"=="	     { return createSymbol(CalculetteSymbol.EQ);	}
+"=="	     { return createSymbol(CalculetteSymbol.EGAL);	}
 "!="         { return createSymbol(CalculetteSymbol.DIFF);	}
-"<="         { return createSymbol(CalculetteSymbol.LE);	}
-">="         { return createSymbol(CalculetteSymbol.GE);	}
-"<"	     { return createSymbol(CalculetteSymbol.LT);	}
-">"          { return createSymbol(CalculetteSymbol.GT);	}
+"<="         { return createSymbol(CalculetteSymbol.IE);	}
+">="         { return createSymbol(CalculetteSymbol.SE);	}
+"<"	     { return createSymbol(CalculetteSymbol.INF);	}
+">"          { return createSymbol(CalculetteSymbol.SUP);	}
 
 /* -------------------------------------------------
         Operateurs booléens
    ------------------------------------------------- */
-"&&"         { return createSymbol(CalculetteSymbol.AND);	}
-"||"         { return createSymbol(CalculetteSymbol.OR);	}
-"!"          { return createSymbol(CalculetteSymbol.NOT);	}
+"OU"         { return createSymbol(CalculetteSymbol.OU);  }
+"ET"         { return createSymbol(CalculetteSymbol.ET);  }
+"OU-X"       { return createSymbol(CalculetteSymbol.OUX); }
+"N-OU"       { return createSymbol(CalculetteSymbol.NOU); }
+"N-ET"       { return createSymbol(CalculetteSymbol.NET); }
+"NON"        { return createSymbol(CalculetteSymbol.NON); }
 
 /* -------------------------------------------------
-        Operateurs ternaires
+        Types simples
    ------------------------------------------------- */
-"?"         { return createSymbol(CalculetteSymbol.THEN);	}
-":"         { return createSymbol(CalculetteSymbol.ELSE);	}
+"Entier"             { return createSymbol(CalculetteSymbol.ENTIER);              }
+"GrosEntier"         { return createSymbol(CalculetteSymbol.GROS_ENTIER);         }
+"EntierPositif"      { return createSymbol(CalculetteSymbol.ENTIER_POSITIF);      }
+"GrosEntierPositif"  { return createSymbol(CalculetteSymbol.GROS_ENTIER_POSITIF); }
 
+"Booleen"            { return createSymbol(CalculetteSymbol.BOOLEEN);     }
+
+"Caractere"          { return createSymbol(CalculetteSymbol.CARACTERE);   }
+
+"Reel"               { return createSymbol(CalculetteSymbol.REEL);        }
+
+"Enumeration"        { return createSymbol(CalculetteSymbol.ENUMERATION); }
+
+/* -------------------------------------------------
+        Types complexes
+   ------------------------------------------------- */
+"Chaine"             { return createSymbol(CalculetteSymbol.CHAINE);   }
+"Tableau"            { return createSymbol(CalculetteSymbol.TABLEAU);  }
+"Pointeur"           { return createSymbol(CalculetteSymbol.POINTEUR); }
+
+/* -------------------------------------------------
+        Tests
+   ------------------------------------------------- */
+"Si"                 { return createSymbol(CalculetteSymbol.SI);      }
+"alors"              { return createSymbol(CalculetteSymbol.ALORS);   }
+"Sinon-si"           { return createSymbol(CalculetteSymbol.SINONSI); }
+"Sinon"              { return createSymbol(CalculetteSymbol.SINON);   }
+"Fin-si"             { return createSymbol(CalculetteSymbol.FINSI);   }
+
+
+/* -------------------------------------------------
+        Boucle
+   ------------------------------------------------- */
+"Pour"                 { return createSymbol(CalculetteSymbol.POUR);       }
+"dans"                 { return createSymbol(CalculetteSymbol.DANS);       }
+"faire"                { return createSymbol(CalculetteSymbol.FAIRE);      }
+"Fin-pour"             { return createSymbol(CalculetteSymbol.FINPOUR);    }
+
+"Tantque"              { return createSymbol(CalculetteSymbol.TANTQUE);    }
+"Fin-tantque"          { return createSymbol(CalculetteSymbol.FINTANTQUE); }
+
+/* -------------------------------------------------
+        Bloc
+   ------------------------------------------------- */
+"Debut"                { return createSymbol(CalculetteSymbol.DEBUT); }
+"Fin"                  { return createSymbol(CalculetteSymbol.FIN);   }
 
 /* -------------------------------------------------
         Nombres
    ------------------------------------------------- */
-{Number}     { return createSymbol(CalculetteSymbol.NUMBER,	new Float(yytext()));	}
-{Boolean}    { return createSymbol(CalculetteSymbol.BOOLEAN,	new Boolean(yytext()));	}
+{Entier}     { return createSymbol(CalculetteSymbol.VALENTIER,  new Integer(yytext())); }
+{Reel}       { return createSymbol(CalculetteSymbol.VALREEL,	new Double(yytext()));	}
+{Boolean}    { return createSymbol(CalculetteSymbol.VALBOOLEEN,	new Boolean(yytext()));	}
 
 /* -------------------------------------------------
         Commentaires - Caracteres non pris en compte
@@ -83,4 +136,4 @@ Comment   = "/*" [^*] ~"*/" | "/*" "*"+ "/"
 
 /* -------------------------------------------------
    ------------------------------------------------- */
-.|\n 	     { }
+. 	     { }

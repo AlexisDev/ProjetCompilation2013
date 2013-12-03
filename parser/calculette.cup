@@ -15,80 +15,85 @@ public void unrecovered_syntax_error(Symbol cur_token) throws java.lang.Exceptio
 
 :}
 
-terminal LPAR, RPAR, PLUS, MINUS, TIMES, DIVIDE, MODULO, MINUS_U, COMA, SEMIC;
-terminal EQ, DIFF, LE, GE, LT, GT;
-terminal AND, OR, NOT;
-terminal THEN, ELSE;
+terminal PAR_OUV, PAR_FER, PLUS, MOINS, FOIS, DIVISER, MODULO, MOINS_U, VIRGULE, CRO_OUV, CRO_FER, POINT, AROBASE, AFFECT, NL;
+terminal EGAL, DIFF, IE, SE, INF, SUP;
+terminal ET, OU, NON, OUX, NOU, NET;
+terminal ENTIER, GROS_ENTIER, ENTIER_POSITIF, GROS_ENTIER_POSITIF, BOOLEEN, CARACTERE, REEL, ENUMERATION;
+terminal CHAINE, TABLEAU, POINTEUR;
+terminal SI, ALORS, SINONSI, SINON, FINSI;
+terminal POUR, DANS, FAIRE, FINPOUR, TANTQUE, FINTANTQUE;
+terminal DEBUT, FIN;
 
-terminal Float NUMBER;
-terminal Boolean BOOLEAN;
+terminal Integer VALENTIER;
+terminal Double  VALREEL;
+terminal Boolean VALBOOLEEN;
 
-non terminal statements, statement;
+non terminal instructions, instruction;
 
 non terminal Float[] comp;
 non terminal Float expr, ternaire;
 non terminal Boolean cond;
 
-precedence left PLUS, MINUS;
-precedence left TIMES, DIVIDE, MODULO;
-precedence left MINUS_U;
+precedence left PLUS, MOINS;
+precedence left FOIS, DIVISER, MODULO;
+precedence left MOINS_U;
 
-precedence left LT, GT;
-precedence left LE, GE;
-precedence left AND, OR;
-precedence left EQ, DIFF;
-precedence left NOT;
+precedence left INF, SUP;
+precedence left IE, SE;
+precedence left ET, OU;
+precedence left EGAL, DIFF;
+precedence left NON;
 
-start with statements;
+start with instructions;
 
-statements ::= 
-	  statements statement
-	| statement
+instructions ::= 
+	  instructions instruction
+	| instruction
 	;
 
-statement ::=
-	  expr:e SEMIC			{: System.out.println(e); :}
-	| comp:c SEMIC			{: System.out.println(String.format("%.1f+%.1fi", c[0], c[1])); :}
-	| cond:c SEMIC			{: System.out.println(c); :}
-	| ternaire:t SEMIC		{: System.out.println(t); :}
+instruction ::=
+	  expr:e NL			{: System.out.println(e); :}
+	| comp:c NL			{: System.out.println(String.format("%.1f+%.1fi", c[0], c[1])); :}
+	| cond:c NL			{: System.out.println(c); :}
+	| ternaire:t NL		{: System.out.println(t); :}
 	| error	 			{: System.err.println("Erreur rencontrée, l'analyse continue..."); :}
 	;
 
 expr 	  ::=
           expr:e1 PLUS expr:e2		{: RESULT = e1 + e2;	  :}    
-	| expr:e1 MINUS expr:e2		{: RESULT = e1 - e2;  	  :}    
-        | expr:e1 TIMES expr:e2		{: RESULT = e1 * e2;  	  :}    
-        | expr:e1 DIVIDE expr:e2 	{: RESULT = e1 / e2;  	  :}
+	| expr:e1 MOINS expr:e2		{: RESULT = e1 - e2;  	  :}    
+        | expr:e1 FOIS expr:e2		{: RESULT = e1 * e2;  	  :}    
+        | expr:e1 DIVISER expr:e2 	{: RESULT = e1 / e2;  	  :}
 	| expr:e1 MODULO expr:e2	{: RESULT = e1 % e2;  	  :}    
-        | LPAR  expr:e RPAR 		{: RESULT =  e;	      	  :}    
-        | MINUS expr:e {: RESULT = -e; :} %prec MINUS_U
-	| NUMBER:n     	  	       	{: RESULT =  n;		  :}
+        | PAR_OUV  expr:e PAR_FER 		{: RESULT =  e;	      	  :}    
+        | MOINS expr:e {: RESULT = -e; :} %prec MOINS_U
+	| VALREEL:n     	  	       	{: RESULT =  n;		  :}
         ;
 
 comp	  ::=
 	  comp:c1 PLUS comp:c2		{: RESULT = new Float[] { c1[0]+c2[0], c1[1]+c2[1] }; :}
-	| comp:c1 MINUS comp:c2		{: RESULT = new Float[] { c1[0]-c2[0], c1[1]-c2[1] }; :}
-	| comp:c1 TIMES comp:c2		{: RESULT = new Float[] { c1[0]*c2[0]-c1[1]*c2[1], c1[1]*c2[0]+c1[0]*c2[1] }; :}
-	| LPAR  comp:c RPAR		{: RESULT = c; :}
-	| MINUS comp:c {: RESULT = new Float[] { -c[0], -c[1] }; :} %prec MINUS_U
-	| LPAR NUMBER:n1 COMA NUMBER:n2	RPAR {: RESULT = new Float[] { n1, n2 }; :}
+	| comp:c1 MOINS comp:c2		{: RESULT = new Float[] { c1[0]-c2[0], c1[1]-c2[1] }; :}
+	| comp:c1 FOIS comp:c2		{: RESULT = new Float[] { c1[0]*c2[0]-c1[1]*c2[1], c1[1]*c2[0]+c1[0]*c2[1] }; :}
+	| PAR_OUV  comp:c PAR_FER		{: RESULT = c; :}
+	| MOINS comp:c {: RESULT = new Float[] { -c[0], -c[1] }; :} %prec MOINS_U
+	| PAR_OUV VALREEL:n1 VIRGULE VALREEL:n2	PAR_FER {: RESULT = new Float[] { n1, n2 }; :}
 	;
 
 cond	  ::=
-	  cond:c1 AND  cond:c2		{: RESULT = (c1 && c2);   :}
-	| cond:c1 OR   cond:c2		{: RESULT = (c1 || c2);   :}
-	| expr:e1 LE   expr:e2		{: RESULT = (e1 <= e2);   :}
-	| expr:e1 GE   expr:e2		{: RESULT = (e1 >= e2);   :}
-	| expr:e1 LT   expr:e2		{: RESULT = (e1 < e2);    :}
-	| expr:e1 GT   expr:e2		{: RESULT = (e1 > e2);    :}
-	| cond:c1 EQ   cond:c2		{: RESULT = (c1 == c2);   :}
+	  cond:c1 ET  cond:c2		{: RESULT = (c1 && c2);   :}
+	| cond:c1 OU   cond:c2		{: RESULT = (c1 || c2);   :}
+	| expr:e1 IE   expr:e2		{: RESULT = (e1 <= e2);   :}
+	| expr:e1 SE   expr:e2		{: RESULT = (e1 >= e2);   :}
+	| expr:e1 INF   expr:e2		{: RESULT = (e1 < e2);    :}
+	| expr:e1 SUP   expr:e2		{: RESULT = (e1 > e2);    :}
+	| cond:c1 EGAL   cond:c2		{: RESULT = (c1 == c2);   :}
 	| cond:c1 DIFF cond:c2		{: RESULT = (c1 != c2);   :}
-	| LPAR cond:c RPAR		{: RESULT =  c;		  :}
-	| NOT cond:c   			{: RESULT = !c;		  :}
-	| BOOLEAN:b			{: RESULT =  b; 	  :}
+	| PAR_OUV cond:c PAR_FER		{: RESULT =  c;		  :}
+	| NON cond:c   			{: RESULT = !c;		  :}
+	| VALBOOLEEN:b			{: RESULT =  b; 	  :}
 	;
 
 ternaire  ::=
-	  cond:c  THEN expr:e1 ELSE expr:e2	{: RESULT = c	    ? e1 : e2;	:}
-	| expr:e0 THEN expr:e1 ELSE expr:e2	{: RESULT = (e0!=0) ? e1 : e2;	:}
+	  cond:c  ALORS expr:e1 SINON expr:e2	{: RESULT = c	    ? e1 : e2;	:}
+	| expr:e0 ALORS expr:e1 SINON expr:e2	{: RESULT = (e0!=0) ? e1 : e2;	:}
 	;

@@ -22,7 +22,7 @@ Lionel
   <target name="clean">
     <delete>
       <fileset file="${BIN}/*.class" />
-      <fileset file="${SRC}/Calc*" />
+      <fileset file="${SRC}/Comp*" />
       <fileset file="Output.txt" />
     </delete>
   </target>
@@ -30,7 +30,7 @@ Lionel
   <!-- ================================= 
        target: default              
        ================================= -->
-  <target name="default" depends="clean,calc" description="Execution de la calculette">
+  <target name="default" depends="clean,comp" description="Execution de la calculette">
     
     <java 
 	classname="Main"
@@ -45,7 +45,7 @@ output="Output.txt">
   <!-- ================================= 
        target: calc              
        ================================= -->
-  <target name="calc" depends="parser,lexer" description="Compilation de la calculette">
+  <target name="comp" depends="parser,lexer" description="Compilation du Compilateur">
     <mkdir dir="${BIN}" />
     <javac 
 	srcdir="${SRC}"
@@ -67,7 +67,7 @@ output="Output.txt">
     </taskdef>
     
     <jflex 
-	file="${LEXER}/calculette.jflex" 
+	file="${LEXER}/compilateur.jflex" 
 	destdir="${SRC}"/>
   </target>
   
@@ -81,10 +81,10 @@ output="Output.txt">
     </taskdef>
     
     <cup 
-	srcfile="${PARSER}/calculette.cup"
+	srcfile="${PARSER}/compilateur.cup"
 	destdir="${SRC}"
-	parser="CalculetteParser"
-	symbols="CalculetteSymbol"
+	parser="CompilateurParser"
+	symbols="CompilateurSymbol"
 	expect="0"
 	dump_grammar="false" 
 	dump_states="false" 

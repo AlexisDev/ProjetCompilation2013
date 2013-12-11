@@ -25,15 +25,15 @@ public class Main {
 		myParser.parse();
 	    } catch(Exception ex) {
 		System.out.println("==============================================");
-		System.err.println("#erreur : parse error !");
+		System.err.println("# erreur : parse error !");
 		System.out.println("==============================================");
 	    }
 
 	} catch(ArrayIndexOutOfBoundsException ex) {
-	    System.err.println("#erreur : aucun fichier à analyser !");
+	    System.err.println("# erreur : aucun fichier à analyser !");
 	    System.out.println("==============================================");
 	} catch(Exception ex) {
-	    System.err.println("#erreur : fichier \"" + args[0] + "\" invalide !");
+	    System.err.println("# erreur : fichier \"" + args[0] + "\" invalide !");
 	    System.out.println("==============================================");
 	}
     }

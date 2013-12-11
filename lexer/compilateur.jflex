@@ -10,7 +10,6 @@ import java_cup.runtime.Symbol;
  
   Chiffre    = [0-9]
   Entier     = ({Chiffre}+)
-  Entier_Neg = ("-"{Entier})
   Reel       = ("-"?{Entier}("."{Entier})?([Ee][+-]?{Entier})?)
   
   Booleen    = ("vrai" | "faux")
@@ -23,21 +22,22 @@ import java_cup.runtime.Symbol;
   Identificateur = ({Lettre}({Alphabet}|"_")*)
 
 %{
-    private void debug(int l, int c, String s) {
-	/*
-	  System.err.println(String.format("[%03d,%03d] %s", l, c, s));
-	//*/
-    }
+  private static final boolean isDebug = false;
 
-    private Symbol createSymbol(int type) {
-	debug(yyline, yycolumn, yytext());
-	return new Symbol(type, yyline, yycolumn);
-    }
-
-    private Symbol createSymbol(int type, Object value) {
-    	debug(yyline, yycolumn, yytext());
-	return new Symbol(type, yyline, yycolumn, value);
-    }
+  private void debug(int l, int c, String s) {
+    if(isDebug)
+      System.err.println(String.format("[%03d,%03d] %s", l, c, s));
+  }
+  
+  private Symbol createSymbol(int type) {
+    debug(yyline, yycolumn, yytext());
+    return new Symbol(type, yyline, yycolumn);
+  }
+  
+  private Symbol createSymbol(int type, Object value) {
+    debug(yyline, yycolumn, yytext());
+    return new Symbol(type, yyline, yycolumn, value);
+  }
 %}
 
 %%
@@ -59,7 +59,9 @@ import java_cup.runtime.Symbol;
 /* -------------------------------------------------
         Types simples
    ------------------------------------------------- */
-"Entier"  { return createSymbol(CompilateurSymbol.ENTIER);              }
+"Entier"  { return createSymbol(CompilateurSymbol.ENTIER);  }
+"Reel"    { return createSymbol(CompilateurSymbol.REEL);    }
+"Booleen" { return createSymbol(CompilateurSymbol.BOOLEEN); }
 
 /* -------------------------------------------------
         Types complexes
@@ -80,17 +82,29 @@ import java_cup.runtime.Symbol;
 "Fin"     { return createSymbol(CompilateurSymbol.FIN);   }
 
 /* -------------------------------------------------
-        Nombres
+        Nombres et valeurs
    ------------------------------------------------- */
-{Entier}|{Entier_Neg}  { return createSymbol(CompilateurSymbol.VAL_ENTIER, Integer.parseInt(yytext())); }
+{Entier}  { return createSymbol(CompilateurSymbol.VAL_ENTIERE, Integer.parseInt(yytext()));   }
+{Reel}    { return createSymbol(CompilateurSymbol.VAL_REELLE, Double.parseDouble(yytext()));  }
+{Booleen} {
+             String str = yytext();
+             Boolean b;
+             if(str.equalsIgnoreCase("vrai"))
+               b = true;
+             else
+               b = false;
+             return createSymbol(CompilateurSymbol.VAL_BOOLEENNE, b);
+          }
+
+{Identificateur} { return createSymbol(CompilateurSymbol.IDENTIFICATEUR, new String(yytext())); }
 
 /* -------------------------------------------------
         Commentaires - Caracteres non pris en compte
    ------------------------------------------------- */
-{Comment} { }
+{Comment}        { }
 
 /* -------------------------------------------------
+        Autres...
    ------------------------------------------------- */
-{Identificateur} { return createSymbol(CompilateurSymbol.IDENTIFICATEUR, new String(yytext())); }
 <<EOF>>          { return createSymbol(CompilateurSymbol.COMP_EOF); }
-.|\n 	         { }
+(.|\n) 	         { }

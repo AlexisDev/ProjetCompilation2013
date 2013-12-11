@@ -18,112 +18,47 @@ parser code {:
 // Terminaux non typés
 terminal DEBUT, FIN;
 terminal AFFECT;
-terminal ENTIER;
+terminal ENTIER, REEL, BOOLEEN;
 terminal COMP_EOF;
 
 // Terminaux typés
 terminal String IDENTIFICATEUR;
 
-terminal Integer VAL_ENTIER;
+terminal Integer VAL_ENTIERE;
+terminal Double  VAL_REELLE;
+terminal Boolean VAL_BOOLEENNE;
 
 // Non terminaux non typés
-non terminal bloc, bloc_fin;
-non terminal declaration, declaration_fin;
+non terminal prog;
+non terminal bloc_succ, bloc_fin;
+non terminal decl_succ, decl_fin;
 
 // Non terminaux typés
 
 // Démarrage
-start with bloc;
+start with prog;
 
-bloc ::= 
-    bloc bloc_fin                                {: System.out.println(String.format("# reduction : bloc bloc_fin")); :}
-  | bloc_fin                                     {: System.out.println(String.format("# reduction : bloc_fin")); :}
-  | COMP_EOF                                     {: System.out.println(String.format("# reduction : EOF")); :}
-  ;
+prog ::=
+      bloc_succ COMP_EOF                           {: System.out.println(String.format("# reduction : bloc_succ EOF")); :}
+    | COMP_EOF                                     {: System.out.println(String.format("# reduction : EOF")); :}
+    ;
+
+bloc_succ ::= 
+      bloc_succ bloc_fin                           {: System.out.println(String.format("# reduction : bloc_succ bloc_fin")); :}
+    | bloc_fin                                     {: System.out.println(String.format("# reduction : bloc_fin")); :}
+    ;
 
 bloc_fin ::= 
-    DEBUT declaration FIN                        {: System.out.println(String.format("# reduction : DEBUT declaration FIN")); :}
-  ;
+      DEBUT decl_succ FIN                          {: System.out.println(String.format("# reduction : DEBUT decl_succ FIN")); :}
+    ;
 
-declaration ::= 
-    declaration declaration_fin                  {: System.out.println(String.format("# reduction : declaration declaration_fin")); :}
-  | declaration_fin                              {: System.out.println(String.format("# reduction : declaration_fin")); :}
-  ;
+decl_succ ::= 
+      decl_succ decl_fin                           {: System.out.println(String.format("# reduction : decl_succ decl_fin")); :}
+    | decl_fin                                     {: System.out.println(String.format("# reduction : decl_fin")); :}
+    ;
 
-declaration_fin ::= 
-  ENTIER IDENTIFICATEUR:id AFFECT VAL_ENTIER:val {: System.out.println(String.format("Déclaration entière : %s = %d", id, val)); :} 
-  ;
-
-/*
-terminal PAR_OUV, PAR_FER, PLUS, MOINS, FOIS, DIVISER, MODULO, MOINS_U, VIRGULE, CRO_OUV, CRO_FER, POINT, AROBASE, AFFECT;
-terminal EGAL, DIFF, IE, SE, INF, SUP;
-terminal ET, OU, NON, OUX, NOU, NET;
-terminal ENTIER, GROS_ENTIER, ENTIER_POSITIF, GROS_ENTIER_POSITIF, BOOLEEN, CARACTERE, REEL, ENUMERATION, RIEN;
-terminal CHAINE, TABLEAU, POINTEUR;
-terminal SI, ALORS, SINONSI, SINON, FINSI;
-terminal POUR, DANS, FAIRE, FINPOUR, TANTQUE, FINTANTQUE;
-terminal DEBUT, FIN, FONCTION, FINFONCTION;
-
-terminal Integer VALENTIER;
-terminal Double  VALREEL;
-terminal Boolean VALBOOLEEN;
-terminal String  CHAINE_CARACTERES;
-
-non terminal bloc;
-non terminal instructions, instruction;
-non terminal declaration;
-
-non terminal Double[] comp;
-non terminal Double expr;
-non terminal Boolean cond;
-
-precedence left PLUS, MOINS;
-precedence left FOIS, DIVISER, MODULO;
-precedence left MOINS_U;
-
-precedence left INF, SUP;
-precedence left IE, SE;
-precedence left ET, OU;
-precedence left EGAL, DIFF;
-precedence left NON;
-
-start with bloc;
-
-bloc ::=
-     DEBUT instructions FIN         {: System.out.println("Debut instructions Fin"); :}
-     ;
-
-instructions ::=
-       instructions instruction
-     | instruction
-     | error
-     |
-     ;
-
-
-/*
-expr 	  ::=
-     expr:e1 PLUS expr:e2		{: System.out.println(e1 + "+" + e2); :}
-	| expr:e1 MOINS expr:e2		{: RESULT = e1 - e2;  	  :}    
-        | expr:e1 FOIS expr:e2		{: RESULT = e1 * e2;  	  :}    
-        | expr:e1 DIVISER expr:e2 	{: RESULT = e1 / e2;  	  :}
-	| expr:e1 MODULO expr:e2	{: RESULT = e1 % e2;  	  :}    
-        | PAR_OUV  expr:e PAR_FER 	{: RESULT =  e;	      	  :}    
-        | MOINS expr:e                  {: RESULT = -e; :} %prec MOINS_U
-	| VALREEL:n     	  	{: RESULT =  n;		  :}
-        ;
-
-cond	  ::=
-	  cond:c1 ET  cond:c2		{: RESULT = (c1 && c2);   :}
-	| cond:c1 OU   cond:c2		{: RESULT = (c1 || c2);   :}
-	| expr:e1 IE   expr:e2		{: RESULT = (e1 <= e2);   :}
-	| expr:e1 SE   expr:e2		{: RESULT = (e1 >= e2);   :}
-	| expr:e1 INF   expr:e2		{: RESULT = (e1 < e2);    :}
-	| expr:e1 SUP   expr:e2		{: RESULT = (e1 > e2);    :}
-	| cond:c1 EGAL   cond:c2	{: RESULT = (c1 == c2);   :}
-	| cond:c1 DIFF cond:c2		{: RESULT = (c1 != c2);   :}
-        | PAR_OUV cond:c PAR_FER	{: RESULT =  c;		  :}
-	| NON cond:c   			{: RESULT = !c;		  :}
-	| VALBOOLEEN:b			{: RESULT =  b; 	  :}
-	;
-*/
+decl_fin ::= 
+      ENTIER  IDENTIFICATEUR:id AFFECT VAL_ENTIERE:val   {: System.out.println(String.format("Déclaration entière   : %s = %d", id, val)); :}
+    | REEL    IDENTIFICATEUR:id AFFECT VAL_REELLE:val    {: System.out.println(String.format("Déclaration réelle    : %s = %d", id, val)); :}
+    | BOOLEEN IDENTIFICATEUR:id AFFECT VAL_BOOLEENNE:val {: System.out.println(String.format("Déclaration booléenne : %s = %d", id, val)); :}
+    ;

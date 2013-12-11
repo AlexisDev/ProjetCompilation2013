@@ -1,3 +1,7 @@
+#! Programme de test !#
 Debut
-	Entier a : 8
+	Entier  a : 8
+	Reel    r : 5.6  
+	Booleen b : faux
 Fin
+#! Fin du programme de test !#

@@ -5,16 +5,56 @@ import java.lang.Number;
 
 parser code {:
 
-public void syntax_error(Symbol cur_token) {
-       report_error(String.format("Erreur syntaxique @ l:%03d,c:%03d", cur_token.left, cur_token.right), null);
-}
+  public void syntax_error(Symbol cur_token) {
+    report_error(String.format("Erreur syntaxique @ l:%03d,c:%03d", cur_token.left, cur_token.right), null);
+  }
 
-public void unrecovered_syntax_error(Symbol cur_token) throws java.lang.Exception {
-       report_fatal_error("Impossible de continuer l'analyse !", null);
-}
-
+  public void unrecovered_syntax_error(Symbol cur_token) throws java.lang.Exception {
+    report_fatal_error("Impossible de continuer l'analyse !", null);
+  }
+  
 :}
 
+// Terminaux non typés
+terminal DEBUT, FIN;
+terminal AFFECT;
+terminal ENTIER;
+terminal COMP_EOF;
+
+// Terminaux typés
+terminal String IDENTIFICATEUR;
+
+terminal Integer VAL_ENTIER;
+
+// Non terminaux non typés
+non terminal bloc, bloc_fin;
+non terminal declaration, declaration_fin;
+
+// Non terminaux typés
+
+// Démarrage
+start with bloc;
+
+bloc ::= 
+    bloc bloc_fin                                {: System.out.println(String.format("# reduction : bloc bloc_fin")); :}
+  | bloc_fin                                     {: System.out.println(String.format("# reduction : bloc_fin")); :}
+  | COMP_EOF                                     {: System.out.println(String.format("# reduction : EOF")); :}
+  ;
+
+bloc_fin ::= 
+    DEBUT declaration FIN                        {: System.out.println(String.format("# reduction : DEBUT declaration FIN")); :}
+  ;
+
+declaration ::= 
+    declaration declaration_fin                  {: System.out.println(String.format("# reduction : declaration declaration_fin")); :}
+  | declaration_fin                              {: System.out.println(String.format("# reduction : declaration_fin")); :}
+  ;
+
+declaration_fin ::= 
+  ENTIER IDENTIFICATEUR:id AFFECT VAL_ENTIER:val {: System.out.println(String.format("Déclaration entière : %s = %d", id, val)); :} 
+  ;
+
+/*
 terminal PAR_OUV, PAR_FER, PLUS, MOINS, FOIS, DIVISER, MODULO, MOINS_U, VIRGULE, CRO_OUV, CRO_FER, POINT, AROBASE, AFFECT;
 terminal EGAL, DIFF, IE, SE, INF, SUP;
 terminal ET, OU, NON, OUX, NOU, NET;

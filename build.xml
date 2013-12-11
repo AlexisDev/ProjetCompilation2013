@@ -19,34 +19,40 @@ Lionel
     Compilation du projet Lexer
   </description>
   
+  <!-- ================================= 
+       target: clean              
+       ================================= -->
   <target name="clean">
+    <mkdir dir="${BIN}" />
     <delete>
       <fileset file="${BIN}/*.class" />
       <fileset file="${SRC}/Comp*" />
       <fileset file="Output.txt" />
     </delete>
+    <delete dir="${BIN}" />
   </target>
 
   <!-- ================================= 
        target: default              
        ================================= -->
   <target name="default" depends="clean,comp" description="Execution de la calculette">
-    
+   
     <java 
 	classname="Main"
         classpath=".:${BIN}:${LIB}/java-cup-11a-runtime.jar"
-
-output="Output.txt">
-      <arg value="Input.txt"/>
+        output="Output.txt">
+        <arg value="Input.txt"/>
     </java>
     
   </target>
   
   <!-- ================================= 
-       target: calc              
+       target: comp              
        ================================= -->
   <target name="comp" depends="parser,lexer" description="Compilation du Compilateur">
+    
     <mkdir dir="${BIN}" />
+
     <javac 
 	srcdir="${SRC}"
 	destdir="${BIN}" 

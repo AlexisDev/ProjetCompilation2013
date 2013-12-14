@@ -28,6 +28,7 @@ Lionel
       <fileset file="${BIN}/*.class" />
       <fileset file="${SRC}/Comp*" />
       <fileset file="Output.txt" />
+      <fileset file="debug.log" />
     </delete>
     <delete dir="${BIN}" />
   </target>

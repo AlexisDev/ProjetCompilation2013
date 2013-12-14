@@ -3,5 +3,17 @@ Debut
 	Entier  a : 8
 	Reel    r : 5.6  
 	Booleen b : faux
+	Chaine  c : "Banane flambée !"
+	Si vrai Alors
+	   Entier x : 0
+	   Entier y : 0
+	Sinon
+	   Si faux Alors
+       	      Entier z : 2
+	   Fin-si
+	   Entier x : 1
+	   Entier y : 1
+	Fin-si
 Fin
 #! Fin du programme de test !#
+$EOF$

@@ -1,10 +1,27 @@
-import java.io.FileReader;
 import java_cup.runtime.Symbol;
 //import java_cup.runtime.*;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.PrintWriter;
+
 public class Main {
 
+    private static final String fichierDebug = "debug.log";
+
     public static void main(String[] args) {
+	File f = new File(fichierDebug);
+	FileOutputStream fos = null;
+	PrintWriter log = null;
+	try {
+	    fos = new FileOutputStream(f);
+	    log = new PrintWriter(fos);
+	} catch(FileNotFoundException ex) {
+	    // rien
+	}
+
 	System.out.println("==============================================");
 	try {
 	    System.out.println("Début de la compilation !");
@@ -27,6 +44,13 @@ public class Main {
 		System.out.println("==============================================");
 		System.err.println("# erreur : parse error !");
 		System.out.println("==============================================");
+
+		try {
+		    log.println("Parse Error >> " + ex);
+		    log.close();
+		} catch(Exception ex2) {
+		    // rien
+		}
 	    }
 
 	} catch(ArrayIndexOutOfBoundsException ex) {

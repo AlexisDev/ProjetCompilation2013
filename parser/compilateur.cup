@@ -12,14 +12,22 @@ parser code {:
   public void unrecovered_syntax_error(Symbol cur_token) throws java.lang.Exception {
     report_fatal_error("Impossible de continuer l'analyse !", null);
   }
+
+  public void syso(String message) { System.out.println(message); }
   
 :}
 
 // Terminaux non typés
 terminal DEBUT, FIN;
-terminal AFFECT;
+terminal AFFECT, PAR_OUVR, PAR_FERM;
 terminal ENTIER, REEL, BOOLEEN;
+terminal TABLEAU, POINTEUR, CHAINE;
 terminal COMP_EOF;
+terminal SI, ALORS, SINON, FIN_SI;
+terminal TANT_QUE, REPETER, POUR, FAIRE, FIN_TANT_QUE, FIN_POUR;
+terminal OU, OU_X, ET, NON, N_OU, N_ET;
+terminal SUP, INF, EGAL, SUP_E, INF_E;
+terminal PLUS, MOINS, MULT, DIV, MOD;
 
 // Terminaux typés
 terminal String IDENTIFICATEUR;
@@ -27,38 +35,71 @@ terminal String IDENTIFICATEUR;
 terminal Integer VAL_ENTIERE;
 terminal Double  VAL_REELLE;
 terminal Boolean VAL_BOOLEENNE;
+terminal String  VAL_CHAINE;
 
 // Non terminaux non typés
 non terminal prog;
-non terminal bloc_succ, bloc_fin;
-non terminal decl_succ, decl_fin;
+
+non terminal String inst_succ, inst_fin;
+non terminal String bloc_fin;//bloc_succ, bloc_fin;
+non terminal String decl_fin;//decl_succ, decl_fin;
+non terminal String si_alors_sinon;
 
 // Non terminaux typés
+non terminal Boolean expr_succ, expr_fin;
 
 // Démarrage
 start with prog;
 
 prog ::=
-      bloc_succ COMP_EOF                           {: System.out.println(String.format("# reduction : bloc_succ EOF")); :}
-    | COMP_EOF                                     {: System.out.println(String.format("# reduction : EOF")); :}
-    ;
+    inst_succ:isucc COMP_EOF            {: System.out.println(isucc);    :}
+  | COMP_EOF                            {: System.out.println("EOF");    :}
+  ;
 
-bloc_succ ::= 
-      bloc_succ bloc_fin                           {: System.out.println(String.format("# reduction : bloc_succ bloc_fin")); :}
-    | bloc_fin                                     {: System.out.println(String.format("# reduction : bloc_fin")); :}
-    ;
+inst_succ ::=
+    inst_succ:isucc inst_fin:ifin       {: RESULT = isucc + "\n" + ifin; :}
+  | inst_fin:ifin                       {: RESULT = ifin;                :}
+  ;
+
+inst_fin ::=
+    bloc_fin:bf                         {: RESULT = bf;                  :}
+  | decl_fin:df                         {: RESULT = df;                  :}
+  | si_alors_sinon:sas                  {: RESULT = sas;                 :}
+  ;
 
 bloc_fin ::= 
-      DEBUT decl_succ FIN                          {: System.out.println(String.format("# reduction : DEBUT decl_succ FIN")); :}
-    ;
-
-decl_succ ::= 
-      decl_succ decl_fin                           {: System.out.println(String.format("# reduction : decl_succ decl_fin")); :}
-    | decl_fin                                     {: System.out.println(String.format("# reduction : decl_fin")); :}
-    ;
+    DEBUT inst_succ:isucc FIN           {: RESULT = isucc;               :}
+  ;
 
 decl_fin ::= 
-      ENTIER  IDENTIFICATEUR:id AFFECT VAL_ENTIERE:val   {: System.out.println(String.format("Déclaration entière   : %s = %d", id, val)); :}
-    | REEL    IDENTIFICATEUR:id AFFECT VAL_REELLE:val    {: System.out.println(String.format("Déclaration réelle    : %s = %d", id, val)); :}
-    | BOOLEEN IDENTIFICATEUR:id AFFECT VAL_BOOLEENNE:val {: System.out.println(String.format("Déclaration booléenne : %s = %d", id, val)); :}
-    ;
+    ENTIER  IDENTIFICATEUR:id AFFECT VAL_ENTIERE:val   {: RESULT = id + " = " + val; :}
+  | REEL    IDENTIFICATEUR:id AFFECT VAL_REELLE:val    {: RESULT = id + " = " + val; :}
+  | BOOLEEN IDENTIFICATEUR:id AFFECT VAL_BOOLEENNE:val {: RESULT = id + " = " + val; :}
+  | CHAINE  IDENTIFICATEUR:id AFFECT VAL_CHAINE:val    {: RESULT = id + " = " + val; :}
+  ;
+
+expr_succ ::=
+    expr_succ:e1 OU expr_fin:e2    {: RESULT =  (e1 || e2); :}
+  | expr_succ:e1 ET expr_fin:e2    {: RESULT =  (e1 && e2); :}
+  | expr_succ:e1 OU_X expr_fin:e2  {: RESULT =  (e1 ^  e2); :}
+  | expr_succ:e1 N_OU expr_fin:e2  {: RESULT = !(e1 || e2); :}
+  | expr_succ:e1 N_ET expr_fin:e2  {: RESULT = !(e1 && e2); :}
+  | expr_fin:e                     {: RESULT = e; :}
+  ;
+  
+expr_fin ::=
+    VAL_BOOLEENNE:val                {: RESULT = val; :}
+  | PAR_OUVR expr_fin:e PAR_FERM     {: RESULT =  e;  :}
+  | NON expr_fin:e                   {: RESULT = !e;  :}
+  ;
+
+si_alors_sinon ::=
+    SI expr_succ:es ALORS inst_succ:isucc1 SINON inst_succ:isucc2 FIN_SI 
+        {: 
+	   RESULT = String.format("t_ = %b\nIF not t_ JMP L_ELSE_\n%s\nJMP L_ENDIF_\nL_ELSE_:\n%s\nL_ENDIF_:\n", es, isucc1, isucc2);
+        :}
+  | SI expr_succ:es ALORS inst_succ:isucc  FIN_SI 
+        {: 
+           RESULT = String.format("t_ = %b\nIF not t_ JMP L_ENDIF_\n%s\nL_ENDIF_:\n", es, isucc); 
+        :}
+  ;

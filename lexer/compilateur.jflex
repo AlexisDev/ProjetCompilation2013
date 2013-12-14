@@ -20,6 +20,9 @@ import java_cup.runtime.Symbol;
   Alphabet   = ({Lettre}|[0-9])
 
   Identificateur = ({Lettre}({Alphabet}|"_")*)
+  ChaineCar  = (\" [^*] ~\")
+
+  EofComp    = ("$EOF$") /* <<EOF>> */
 
 %{
   private static final boolean isDebug = false;
@@ -45,16 +48,35 @@ import java_cup.runtime.Symbol;
 /* -------------------------------------------------
         Operateurs
    ------------------------------------------------- */
-":" { return createSymbol(CompilateurSymbol.AFFECT); }
+":" { return createSymbol(CompilateurSymbol.AFFECT);   }
+"(" { return createSymbol(CompilateurSymbol.PAR_OUVR); }
+")" { return createSymbol(CompilateurSymbol.PAR_FERM); }
+
+"+" { return createSymbol(CompilateurSymbol.PLUS);     }
+"-" { return createSymbol(CompilateurSymbol.MOINS);    }
+"*" { return createSymbol(CompilateurSymbol.MULT);     }
+"/" { return createSymbol(CompilateurSymbol.DIV);      }
+"%" { return createSymbol(CompilateurSymbol.MOD);      }
 
 
 /* -------------------------------------------------
         Comparaison
    ------------------------------------------------- */
+">"  { return createSymbol(CompilateurSymbol.SUP);   }
+"<"  { return createSymbol(CompilateurSymbol.INF);   }
+"="  { return createSymbol(CompilateurSymbol.EGAL);  }
+">=" { return createSymbol(CompilateurSymbol.SUP_E); }
+"<=" { return createSymbol(CompilateurSymbol.INF_E); }
 
 /* -------------------------------------------------
         Operateurs booléens
    ------------------------------------------------- */
+"OU"  { return createSymbol(CompilateurSymbol.OU);   }
+"OUX" { return createSymbol(CompilateurSymbol.OU_X); }
+"ET"  { return createSymbol(CompilateurSymbol.ET);   }
+"NON" { return createSymbol(CompilateurSymbol.NON);  }
+"NOU" { return createSymbol(CompilateurSymbol.N_OU); }
+"NET" { return createSymbol(CompilateurSymbol.N_ET); }
 
 /* -------------------------------------------------
         Types simples
@@ -66,14 +88,29 @@ import java_cup.runtime.Symbol;
 /* -------------------------------------------------
         Types complexes
    ------------------------------------------------- */
+"Tableau"  { return createSymbol(CompilateurSymbol.TABLEAU);  }
+"Pointeur" { return createSymbol(CompilateurSymbol.POINTEUR); }
+"Chaine"   { return createSymbol(CompilateurSymbol.CHAINE);   }
 
 /* -------------------------------------------------
         Tests
    ------------------------------------------------- */
+"Si"     { return createSymbol(CompilateurSymbol.SI);     }
+"Alors"  { return createSymbol(CompilateurSymbol.ALORS);  }
+"Sinon"  { return createSymbol(CompilateurSymbol.SINON);  }
+
+"Fin-si" { return createSymbol(CompilateurSymbol.FIN_SI); }
 
 /* -------------------------------------------------
         Boucle
    ------------------------------------------------- */
+"Pour"    { return createSymbol(CompilateurSymbol.POUR);     }
+"Faire"   { return createSymbol(CompilateurSymbol.FAIRE);    }
+"Tantque" { return createSymbol(CompilateurSymbol.TANT_QUE); }
+"Repeter" { return createSymbol(CompilateurSymbol.REPETER);  }
+
+"Fin-tantque" { return createSymbol(CompilateurSymbol.FIN_TANT_QUE); }
+"Fin-pour"    { return createSymbol(CompilateurSymbol.FIN_POUR);     }
 
 /* -------------------------------------------------
         Bloc
@@ -97,14 +134,15 @@ import java_cup.runtime.Symbol;
           }
 
 {Identificateur} { return createSymbol(CompilateurSymbol.IDENTIFICATEUR, new String(yytext())); }
+{ChaineCar} { return createSymbol(CompilateurSymbol.VAL_CHAINE, new String(yytext())); }
 
 /* -------------------------------------------------
         Commentaires - Caracteres non pris en compte
    ------------------------------------------------- */
-{Comment}        { }
+{Comment} { }
 
 /* -------------------------------------------------
         Autres...
    ------------------------------------------------- */
-<<EOF>>          { return createSymbol(CompilateurSymbol.COMP_EOF); }
-(.|\n) 	         { }
+{EofComp} { return createSymbol(CompilateurSymbol.COMP_EOF); }
+(.|\n) 	  { }

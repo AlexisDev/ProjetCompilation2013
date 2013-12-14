@@ -19,6 +19,8 @@ import java_cup.runtime.Symbol;
   Lettre     = [a-zA-Z]
   Alphabet   = ({Lettre}|[0-9])
 
+  Crochet    = ("["|"]")
+
   Identificateur = ({Lettre}({Alphabet}|"_")*)
   ChaineCar  = (\" [^*] ~\")
 
@@ -48,16 +50,19 @@ import java_cup.runtime.Symbol;
 /* -------------------------------------------------
         Operateurs
    ------------------------------------------------- */
-":" { return createSymbol(CompilateurSymbol.AFFECT);   }
-"(" { return createSymbol(CompilateurSymbol.PAR_OUVR); }
-")" { return createSymbol(CompilateurSymbol.PAR_FERM); }
+":"  { return createSymbol(CompilateurSymbol.AFFECT);   }
+"("  { return createSymbol(CompilateurSymbol.PAR_OUVR); }
+")"  { return createSymbol(CompilateurSymbol.PAR_FERM); }
+".." { return createSymbol(CompilateurSymbol.INTER);    }
+"@"  { return createSymbol(CompilateurSymbol.AT);       }
 
-"+" { return createSymbol(CompilateurSymbol.PLUS);     }
-"-" { return createSymbol(CompilateurSymbol.MOINS);    }
-"*" { return createSymbol(CompilateurSymbol.MULT);     }
-"/" { return createSymbol(CompilateurSymbol.DIV);      }
-"%" { return createSymbol(CompilateurSymbol.MOD);      }
+"+"  { return createSymbol(CompilateurSymbol.PLUS);     }
+"-"  { return createSymbol(CompilateurSymbol.MOINS);    }
+"*"  { return createSymbol(CompilateurSymbol.MULT);     }
+"/"  { return createSymbol(CompilateurSymbol.DIV);      }
+"%"  { return createSymbol(CompilateurSymbol.MOD);      }
 
+{Crochet} { return createSymbol(CompilateurSymbol.CROCHET, yytext().charAt(0)); }
 
 /* -------------------------------------------------
         Comparaison
@@ -67,6 +72,7 @@ import java_cup.runtime.Symbol;
 "="  { return createSymbol(CompilateurSymbol.EGAL);  }
 ">=" { return createSymbol(CompilateurSymbol.SUP_E); }
 "<=" { return createSymbol(CompilateurSymbol.INF_E); }
+"!=" { return createSymbol(CompilateurSymbol.DIFF);  }
 
 /* -------------------------------------------------
         Operateurs booléens
@@ -81,16 +87,16 @@ import java_cup.runtime.Symbol;
 /* -------------------------------------------------
         Types simples
    ------------------------------------------------- */
-"Entier"  { return createSymbol(CompilateurSymbol.ENTIER);  }
-"Reel"    { return createSymbol(CompilateurSymbol.REEL);    }
-"Booleen" { return createSymbol(CompilateurSymbol.BOOLEEN); }
+"Entier"  { return createSymbol(CompilateurSymbol.ENTIER,  new String(yytext())); }
+"Reel"    { return createSymbol(CompilateurSymbol.REEL,    new String(yytext())); }
+"Booleen" { return createSymbol(CompilateurSymbol.BOOLEEN, new String(yytext())); }
 
 /* -------------------------------------------------
         Types complexes
    ------------------------------------------------- */
 "Tableau"  { return createSymbol(CompilateurSymbol.TABLEAU);  }
 "Pointeur" { return createSymbol(CompilateurSymbol.POINTEUR); }
-"Chaine"   { return createSymbol(CompilateurSymbol.CHAINE);   }
+"Chaine"   { return createSymbol(CompilateurSymbol.CHAINE, new String(yytext())); }
 
 /* -------------------------------------------------
         Tests

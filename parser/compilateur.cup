@@ -19,17 +19,18 @@ parser code {:
 
 // Terminaux non typés
 terminal DEBUT, FIN;
-terminal AFFECT, PAR_OUVR, PAR_FERM;
-terminal ENTIER, REEL, BOOLEEN;
-terminal TABLEAU, POINTEUR, CHAINE;
+terminal AFFECT, PAR_OUVR, PAR_FERM, INTER;
+terminal TABLEAU, POINTEUR, AT;
 terminal COMP_EOF;
 terminal SI, ALORS, SINON, FIN_SI;
 terminal TANT_QUE, REPETER, POUR, FAIRE, FIN_TANT_QUE, FIN_POUR;
 terminal OU, OU_X, ET, NON, N_OU, N_ET;
-terminal SUP, INF, EGAL, SUP_E, INF_E;
+terminal SUP, INF, EGAL, DIFF, SUP_E, INF_E;
 terminal PLUS, MOINS, MULT, DIV, MOD;
 
 // Terminaux typés
+terminal String ENTIER, REEL, BOOLEEN, CHAINE;
+
 terminal String IDENTIFICATEUR;
 
 terminal Integer VAL_ENTIERE;
@@ -37,25 +38,37 @@ terminal Double  VAL_REELLE;
 terminal Boolean VAL_BOOLEENNE;
 terminal String  VAL_CHAINE;
 
+terminal Character CROCHET;
+
 // Non terminaux non typés
 non terminal prog;
 
 non terminal String inst_succ, inst_fin;
-non terminal String bloc_fin;//bloc_succ, bloc_fin;
-non terminal String decl_fin;//decl_succ, decl_fin;
+non terminal String bloc_fin;
+non terminal String decl_fin, type, adresse;
+non terminal String oper_succ, oper_fin, variable, def;
+non terminal String comp_succ, comp_fin;
 non terminal String si_alors_sinon;
+non terminal String pour_faire, tantque_repeter, repeter_tantque;
 
 // Non terminaux typés
 non terminal Boolean expr_succ, expr_fin;
+non terminal int[]   intervalle;
 
 // Démarrage
 start with prog;
 
+/* ----------------------------------------------
+   Le Programme
+   ---------------------------------------------- */
 prog ::=
     inst_succ:isucc COMP_EOF            {: System.out.println(isucc);    :}
   | COMP_EOF                            {: System.out.println("EOF");    :}
   ;
 
+/* ----------------------------------------------
+   Les Instructions
+   ---------------------------------------------- */
 inst_succ ::=
     inst_succ:isucc inst_fin:ifin       {: RESULT = isucc + "\n" + ifin; :}
   | inst_fin:ifin                       {: RESULT = ifin;                :}
@@ -65,41 +78,210 @@ inst_fin ::=
     bloc_fin:bf                         {: RESULT = bf;                  :}
   | decl_fin:df                         {: RESULT = df;                  :}
   | si_alors_sinon:sas                  {: RESULT = sas;                 :}
+  | def:df                              {: RESULT = df;                  :}
+  | tantque_repeter:tqr                 {: RESULT = tqr;                 :}
+  | repeter_tantque:rtq                 {: RESULT = rtq;                 :}
+  | pour_faire:pf                       {: RESULT = pf;                  :}
+  | error                               {: RESULT = "/* Erreur syntaxique */"; :}
   ;
 
+/* ----------------------------------------------
+   Les Blocs
+   ---------------------------------------------- */
 bloc_fin ::= 
     DEBUT inst_succ:isucc FIN           {: RESULT = isucc;               :}
   ;
 
+/* ----------------------------------------------
+   Les Déclarations
+   ---------------------------------------------- */
 decl_fin ::= 
-    ENTIER  IDENTIFICATEUR:id AFFECT VAL_ENTIERE:val   {: RESULT = id + " = " + val; :}
-  | REEL    IDENTIFICATEUR:id AFFECT VAL_REELLE:val    {: RESULT = id + " = " + val; :}
-  | BOOLEEN IDENTIFICATEUR:id AFFECT VAL_BOOLEENNE:val {: RESULT = id + " = " + val; :}
-  | CHAINE  IDENTIFICATEUR:id AFFECT VAL_CHAINE:val    {: RESULT = id + " = " + val; :}
+    type:t IDENTIFICATEUR:id AFFECT VAL_CHAINE:str
+      {: RESULT = id + " = " + str;                   :}
+  | type:t IDENTIFICATEUR:id AFFECT variable:val
+      {: RESULT = id + " = " + val;                   :}
+  | TABLEAU  PAR_OUVR type:t PAR_FERM IDENTIFICATEUR:id PAR_OUVR VAL_ENTIERE:n PAR_FERM
+      {: RESULT = id + " = new " + t + "[" + n + "]"; :}
+  | POINTEUR PAR_OUVR type:t PAR_FERM IDENTIFICATEUR:id AFFECT adresse:a
+      {: RESULT = id + " = " + a; :}
   ;
 
+type ::=
+    ENTIER:t   {: RESULT = t; :}
+  | REEL:t     {: RESULT = t; :}
+  | BOOLEEN:t  {: RESULT = t; :}
+  | CHAINE:t   {: RESULT = t; :}
+  ;
+
+/* ----------------------------------------------
+   Les Opérations
+   ---------------------------------------------- */
+oper_succ ::=
+    oper_succ:os PLUS  oper_fin:of 
+      {:
+          RESULT = String.format("%s\n%s\nt0_ = %s\nt1_ = %s\nt2_ = t0_ + t1_\n", os, of, "quelque chose qui vaut \"os\"", "quelque chose qui vaut \"of\"");
+      :}
+  | oper_succ:os MOINS oper_fin:of 
+      {:
+          RESULT = String.format("%s\n%s\nt0_ = %s\nt1_ = %s\nt2_ = t0_ - t1_\n", os, of, "quelque chose qui vaut \"os\"", "quelque chose qui vaut \"of\"");
+      :}
+  | oper_succ:os MULT  oper_fin:of 
+      {:
+          RESULT = String.format("%s\n%s\nt0_ = %s\nt1_ = %s\nt2_ = t0_ * t1_\n", os, of, "quelque chose qui vaut \"os\"", "quelque chose qui vaut \"of\"");
+      :}
+  | oper_succ:os DIV   oper_fin:of 
+      {:
+          RESULT = String.format("%s\n%s\nt0_ = %s\nt1_ = %s\nt2_ = t0_ / t1_\n", os, of, "quelque chose qui vaut \"os\"", "quelque chose qui vaut \"of\"");
+      :}
+  | oper_succ:os MOD   oper_fin:of 
+      {:
+          RESULT = String.format("%s\n%s\nt0_ = %s\nt1_ = %s\nt2_ = t0_ % t1_\n", os, of, "quelque chose qui vaut \"os\"", "quelque chose qui vaut \"of\"");
+      :}
+  | oper_fin:of                   {: RESULT = of;                        :}
+  ;
+
+oper_fin ::=
+    variable:v1 PLUS  variable:v2 {: RESULT = "t_ = " + v1 + " + " + v2; :}
+  | variable:v1 MOINS variable:v2 {: RESULT = "t_ = " + v1 + " - " + v2; :}
+  | variable:v1 MULT  variable:v2 {: RESULT = "t_ = " + v1 + " * " + v2; :}
+  | variable:v1 DIV   variable:v2 {: RESULT = "t_ = " + v1 + " / " + v2; :}
+  | variable:v1 MOD   variable:v2 {: RESULT = "t_ = " + v1 + " % " + v2; :}
+  | PAR_OUVR oper_fin:of PAR_FERM {: RESULT = of;                        :}
+  ;
+
+variable ::=
+    VAL_ENTIERE:v                {: RESULT = Integer.toString(v); :}
+  | VAL_REELLE:v                 {: RESULT = Double.toString(v);  :}
+  | IDENTIFICATEUR:id            {: RESULT = id;                  :}
+  ;
+
+adresse ::=
+    AT IDENTIFICATEUR:id {: RESULT = "@" + id;  :}
+  | VAL_ENTIERE:val      {: RESULT = "@" + val; :}
+  ;
+
+// (re)définitions de variables
+def ::=
+    IDENTIFICATEUR:id AFFECT oper_succ:os 
+      {:
+          RESULT = String.format("%s\n%s = %s\n", os, id, "quelque chose qui vaut \"os\"");
+      :}
+  | IDENTIFICATEUR:id AFFECT variable:v {: RESULT = id + " = " + v; :}
+  ;
+
+/* ----------------------------------------------
+   Les Expressions Logiques
+   ---------------------------------------------- */
 expr_succ ::=
-    expr_succ:e1 OU expr_fin:e2    {: RESULT =  (e1 || e2); :}
-  | expr_succ:e1 ET expr_fin:e2    {: RESULT =  (e1 && e2); :}
-  | expr_succ:e1 OU_X expr_fin:e2  {: RESULT =  (e1 ^  e2); :}
-  | expr_succ:e1 N_OU expr_fin:e2  {: RESULT = !(e1 || e2); :}
-  | expr_succ:e1 N_ET expr_fin:e2  {: RESULT = !(e1 && e2); :}
-  | expr_fin:e                     {: RESULT = e; :}
+    expr_succ:e1 OU    expr_fin:e2 {: RESULT =  (e1 || e2); :}
+  | expr_succ:e1 ET    expr_fin:e2 {: RESULT =  (e1 && e2); :}
+  | expr_succ:e1 OU_X  expr_fin:e2 {: RESULT =  (e1 ^  e2); :}
+  | expr_succ:e1 N_OU  expr_fin:e2 {: RESULT = !(e1 || e2); :}
+  | expr_succ:e1 N_ET  expr_fin:e2 {: RESULT = !(e1 && e2); :}
+  | expr_fin:e                     {: RESULT = e;           :}
   ;
   
 expr_fin ::=
     VAL_BOOLEENNE:val                {: RESULT = val; :}
-  | PAR_OUVR expr_fin:e PAR_FERM     {: RESULT =  e;  :}
   | NON expr_fin:e                   {: RESULT = !e;  :}
+  | PAR_OUVR expr_fin:e PAR_FERM     {: RESULT =  e;  :}
   ;
 
+/* ----------------------------------------------
+   Les Comparaisons
+   ---------------------------------------------- */
+comp_succ ::=
+    comp_succ:c1 SUP   comp_fin:c2
+      {:
+          RESULT = String.format("%s\n%s\nt0_ = %s\nt1_ = %s\nt2_ = t0_ > t1_\n", c1, c2, "quelque chose qui vaut \"c1\"", "quelque chose qui vaut \"c2\"");
+      :}
+  | comp_succ:c1 INF   comp_fin:c2
+      {:
+          RESULT = String.format("%s\n%s\nt0_ = %s\nt1_ = %s\nt2_ = t0_ < t1_\n", c1, c2, "quelque chose qui vaut \"c1\"", "quelque chose qui vaut \"c2\"");
+      :}
+  | comp_succ:c1 SUP_E comp_fin:c2
+      {:
+          RESULT = String.format("%s\n%s\nt0_ = %s\nt1_ = %s\nt2_ = t0_ >= t1_\n", c1, c2, "quelque chose qui vaut \"c1\"", "quelque chose qui vaut \"c2\"");
+      :}
+  | comp_succ:c1 INF_E comp_fin:c2
+      {:
+          RESULT = String.format("%s\n%s\nt0_ = %s\nt1_ = %s\nt2_ = t0_ <= t1_\n", c1, c2, "quelque chose qui vaut \"c1\"", "quelque chose qui vaut \"c2\"");
+      :}
+  | comp_succ:c1 EGAL  comp_fin:c2
+      {:
+          RESULT = String.format("%s\n%s\nt0_ = %s\nt1_ = %s\nt2_ = t0_ == t1_\n", c1, c2, "quelque chose qui vaut \"c1\"", "quelque chose qui vaut \"c2\"");
+      :}
+  | comp_succ:c1 DIFF  comp_fin:c2
+      {:
+          RESULT = String.format("%s\n%s\nt0_ = %s\nt1_ = %s\nt2_ = t0_ != t1_\n", c1, c2, "quelque chose qui vaut \"c1\"", "quelque chose qui vaut \"c2\"");
+      :}
+  | comp_fin:c                    {: RESULT = c;                          :}
+  ;
+
+comp_fin ::=
+    variable:v1 SUP   variable:v2 {: RESULT = "t_ = " + v1 + " > "  + v2; :}
+  | variable:v1 INF   variable:v2 {: RESULT = "t_ = " + v1 + " < "  + v2; :}
+  | variable:v1 SUP_E variable:v2 {: RESULT = "t_ = " + v1 + " >= " + v2; :}
+  | variable:v1 INF_E variable:v2 {: RESULT = "t_ = " + v1 + " <= " + v2; :}
+  | variable:v1 EGAL  variable:v2 {: RESULT = "t_ = " + v1 + " == " + v2; :}
+  | variable:v1 DIFF  variable:v2 {: RESULT = "t_ = " + v1 + " != " + v2; :}
+  | PAR_OUVR comp_fin:c PAR_FERM  {: RESULT = c;                          :}
+  ;
+
+/* ----------------------------------------------
+   Les Structures Conditionnelles
+   ---------------------------------------------- */
 si_alors_sinon ::=
     SI expr_succ:es ALORS inst_succ:isucc1 SINON inst_succ:isucc2 FIN_SI 
         {: 
-	   RESULT = String.format("t_ = %b\nIF not t_ JMP L_ELSE_\n%s\nJMP L_ENDIF_\nL_ELSE_:\n%s\nL_ENDIF_:\n", es, isucc1, isucc2);
+	   RESULT = String.format("t_ = %s\nIF not t_ JMP L_ELSE_\n%s\nJMP L_ENDIF_\nL_ELSE_:\n%s\nL_ENDIF_:\n", Boolean.toString(es), isucc1, isucc2);
         :}
   | SI expr_succ:es ALORS inst_succ:isucc  FIN_SI 
         {: 
-           RESULT = String.format("t_ = %b\nIF not t_ JMP L_ENDIF_\n%s\nL_ENDIF_:\n", es, isucc); 
+	   RESULT = String.format("t_ = %s\nIF not t_ JMP L_ENDIF_\n%s\nL_ENDIF_:\n", Boolean.toString(es), isucc); 
         :}
+  ;
+
+/* ----------------------------------------------
+   Les Boucles
+   ---------------------------------------------- */
+// while ( ... ) { ... }
+tantque_repeter ::=
+    TANT_QUE expr_succ:es REPETER inst_succ:isucc FIN_TANT_QUE
+       {:
+	   RESULT = String.format("L_TQ_:\nt_ = %s\nIF not t_ JMP L_END_TQ_\n%s\nJMP L_TQ_\nL_END_TQ_:\n", Boolean.toString(es), isucc);
+       :}
+  | TANT_QUE comp_succ:cs REPETER inst_succ:isucc FIN_TANT_QUE
+       {:
+	   RESULT = String.format("L_TQ_:\nt_ = %s\nIF not t_ JMP L_END_TQ_\n%s\nJMP L_TQ_\nL_END_TQ_:\n", "quelque chose qui vaut \"cs\"", isucc);
+       :}
+  ;
+
+// do { ... } while ( ... )
+repeter_tantque ::=
+    REPETER inst_succ:isucc TANT_QUE expr_succ:es FIN_TANT_QUE
+       {:
+	   RESULT = String.format("L_RTQ_:\n%s\nt_ = %s\nIF t_ JMP L_RTQ\n", isucc, Boolean.toString(es));
+       :}
+  | REPETER inst_succ:isucc TANT_QUE comp_succ:cs FIN_TANT_QUE
+       {:
+	   RESULT = String.format("L_RTQ_:\n%s\nt_ = %s\nIF t_ JMP L_RTQ\n", isucc, "quelque chose qui vaut \"cs\"");
+       :}
+  ;
+
+// for ( iterator in intervalle ) { ... }
+pour_faire ::=
+  POUR intervalle:inter FAIRE inst_succ:isucc FIN_POUR
+      {:
+          RESULT = String.format("t_ = %s\nL_POUR_:\nIF t_ > %s JMP L_END_POUR\n%s\nt_ = t_ + 1\nJMP L_POUR_\nL_END_POUR:\n", Integer.toString(inter[0]), Integer.toString(inter[1]), isucc);
+      :}
+  ;
+
+intervalle ::=
+  CROCHET:c1 VAL_ENTIERE:v1 INTER VAL_ENTIERE:v2 CROCHET:c2
+     {:
+         int debut = ((c1 == '[') ? v1 : (v1-1));
+         int fin   = ((c2 == ']') ? v2 : (v2-1));
+         RESULT    = new int[] { debut, fin };
+     :}
   ;

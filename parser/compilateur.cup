@@ -2,6 +2,12 @@
 
 import java_cup.runtime.*;
 import java.lang.Number;
+import src.*;
+
+action code {:
+TableSymbole ts = new TableSymbole();
+Integer tempNum = new Integer(0);
+:}
 
 parser code {:
 
@@ -99,7 +105,7 @@ decl_fin ::=
     type:t IDENTIFICATEUR:id AFFECT VAL_CHAINE:str
       {: RESULT = id + " = " + str;                   :}
   | type:t IDENTIFICATEUR:id AFFECT variable:val
-      {: RESULT = id + " = " + val;                   :}
+      {: RESULT = "_t" + tempNum + " = " + val; ts.addVar(id, new Variable(t,val,tempNum++));                  :}
   | TABLEAU  PAR_OUVR type:t PAR_FERM IDENTIFICATEUR:id PAR_OUVR VAL_ENTIERE:n PAR_FERM
       {: RESULT = id + " = new " + t + "[" + n + "]"; :}
   | POINTEUR PAR_OUVR type:t PAR_FERM IDENTIFICATEUR:id AFFECT adresse:a
@@ -117,43 +123,65 @@ type ::=
    Les Opérations
    ---------------------------------------------- */
 oper_succ ::=
-    oper_succ:os PLUS  oper_fin:of 
+    oper_fin:os PLUS  oper_succ:of 
       {:
-          RESULT = String.format("%s\n%s\nt0_ = %s\nt1_ = %s\nt2_ = t0_ + t1_\n", os, of, "quelque chose qui vaut \"os\"", "quelque chose qui vaut \"of\"");
+		String res = "";
+		String of2 = of;
+		if( of.contains("=")) { res += of; of2 = of.substring(0, of.indexOf('=')-1); }
+		res += "_t" + tempNum + " = " + os + " + " + of2 + "\n";
+		RESULT = res;
+		tempNum++;
       :}
-  | oper_succ:os MOINS oper_fin:of 
+  | oper_fin:os MOINS oper_succ:of 
       {:
-          RESULT = String.format("%s\n%s\nt0_ = %s\nt1_ = %s\nt2_ = t0_ - t1_\n", os, of, "quelque chose qui vaut \"os\"", "quelque chose qui vaut \"of\"");
+		String res = "";
+		String of2 = of;
+		if( of.contains("=")) { res += of; of2 = of.substring(0, of.indexOf('=')-2); }
+		res += "_t" + tempNum + " = " + os + " - " + of2 + "\n";
+		RESULT = res;
+		tempNum++;
       :}
-  | oper_succ:os MULT  oper_fin:of 
+  | oper_fin:os MULT  oper_succ:of 
       {:
-          RESULT = String.format("%s\n%s\nt0_ = %s\nt1_ = %s\nt2_ = t0_ * t1_\n", os, of, "quelque chose qui vaut \"os\"", "quelque chose qui vaut \"of\"");
+         String res = "";
+		String of2 = of;
+		if( of.contains("=")) { res += of; of2 = of.substring(0, of.indexOf('=')-2); }
+		res += "_t" + tempNum + " = " + os + " * " + of2 + "\n";
+		RESULT = res;
+		tempNum++;
       :}
-  | oper_succ:os DIV   oper_fin:of 
+  | oper_fin:os DIV   oper_succ:of 
       {:
-          RESULT = String.format("%s\n%s\nt0_ = %s\nt1_ = %s\nt2_ = t0_ / t1_\n", os, of, "quelque chose qui vaut \"os\"", "quelque chose qui vaut \"of\"");
+        String res = "";
+		String of2 = of;
+		if( of.contains("=")) { res += of; of2 = of.substring(0, of.indexOf('=')-2); }
+		res += "_t" + tempNum + " = " + os + " / " + of2 + "\n";
+		RESULT = res;
+		tempNum++;
       :}
-  | oper_succ:os MOD   oper_fin:of 
+  | oper_fin:os MOD   oper_succ:of 
       {:
-          RESULT = String.format("%s\n%s\nt0_ = %s\nt1_ = %s\nt2_ = t0_ % t1_\n", os, of, "quelque chose qui vaut \"os\"", "quelque chose qui vaut \"of\"");
+        String res = "";
+		String of2 = of;
+		if( of.contains("=")) { res += of; of2 = of.substring(0, of.indexOf('=')-2); }
+		res += "_t" + tempNum + " = " + os + " % " + of2 + "\n";
+		RESULT = res;
+		tempNum++;
       :}
+  | PAR_OUVR oper_succ:of PAR_FERM {: RESULT = of;                        :}
   | oper_fin:of                   {: RESULT = of;                        :}
   ;
 
 oper_fin ::=
-    variable:v1 PLUS  variable:v2 {: RESULT = "t_ = " + v1 + " + " + v2; :}
-  | variable:v1 MOINS variable:v2 {: RESULT = "t_ = " + v1 + " - " + v2; :}
-  | variable:v1 MULT  variable:v2 {: RESULT = "t_ = " + v1 + " * " + v2; :}
-  | variable:v1 DIV   variable:v2 {: RESULT = "t_ = " + v1 + " / " + v2; :}
-  | variable:v1 MOD   variable:v2 {: RESULT = "t_ = " + v1 + " % " + v2; :}
-  | PAR_OUVR oper_fin:of PAR_FERM {: RESULT = of;                        :}
+	variable:v1                   {: RESULT = v1;                      :}
   ;
 
 variable ::=
     VAL_ENTIERE:v                {: RESULT = Integer.toString(v); :}
-  | VAL_REELLE:v                 {: RESULT = Double.toString(v);  :}
-  | IDENTIFICATEUR:id            {: RESULT = id;                  :}
-  ;
+	| VAL_BOOLEENNE:v               {: RESULT = Boolean.toString(v); :}
+	| VAL_REELLE:v                 {: RESULT = Double.toString(v);  :}
+	| IDENTIFICATEUR:id            {: Variable v = ts.getVar(id); if(v == null){System.out.println("Error : " + id + " has not been declared !");} RESULT = "_t" + v.place.toString();                 :}
+	;
 
 adresse ::=
     AT IDENTIFICATEUR:id {: RESULT = "@" + id;  :}
@@ -164,9 +192,14 @@ adresse ::=
 def ::=
     IDENTIFICATEUR:id AFFECT oper_succ:os 
       {:
-          RESULT = String.format("%s\n%s = %s\n", os, id, "quelque chose qui vaut \"os\"");
+		Variable v = ts.getVar(id); if(v == null){System.out.println("Error : " + id + " has not been declared !");}
+		String os2 = os;
+		if( os.contains("=") ){
+			os2 = os.substring(0, os.lastIndexOf('=')-1);
+			os2 = os2.substring(os2.lastIndexOf('_'), os2.length());
+		} else { os = ""; }
+		RESULT = os + "_t" + v.place + " = " + os2;
       :}
-  | IDENTIFICATEUR:id AFFECT variable:v {: RESULT = id + " = " + v; :}
   ;
 
 /* ----------------------------------------------
@@ -219,8 +252,8 @@ comp_succ ::=
   ;
 
 comp_fin ::=
-    variable:v1 SUP   variable:v2 {: RESULT = "t_ = " + v1 + " > "  + v2; :}
-  | variable:v1 INF   variable:v2 {: RESULT = "t_ = " + v1 + " < "  + v2; :}
+    variable:v1 SUP   variable:v2 {: RESULT = "_t" + (tempNum++) + " = " + v1 + " > "  + v2; :}
+  | variable:v1 INF   variable:v2 {: RESULT = "_t" + (tempNum++) + " = " + v1 + " < "  + v2; :}
   | variable:v1 SUP_E variable:v2 {: RESULT = "t_ = " + v1 + " >= " + v2; :}
   | variable:v1 INF_E variable:v2 {: RESULT = "t_ = " + v1 + " <= " + v2; :}
   | variable:v1 EGAL  variable:v2 {: RESULT = "t_ = " + v1 + " == " + v2; :}
@@ -234,11 +267,11 @@ comp_fin ::=
 si_alors_sinon ::=
     SI expr_succ:es ALORS inst_succ:isucc1 SINON inst_succ:isucc2 FIN_SI 
         {: 
-	   RESULT = String.format("t_ = %s\nIF not t_ JMP L_ELSE_\n%s\nJMP L_ENDIF_\nL_ELSE_:\n%s\nL_ENDIF_:\n", Boolean.toString(es), isucc1, isucc2);
+	   RESULT = String.format("_t%s = %s\nIF not t_ JMP L_ELSE_\n%s\nJMP L_ENDIF_\nL_ELSE_:\n%s\nL_ENDIF_:\n", tempNum++, Boolean.toString(es), isucc1, isucc2);
         :}
   | SI expr_succ:es ALORS inst_succ:isucc  FIN_SI 
         {: 
-	   RESULT = String.format("t_ = %s\nIF not t_ JMP L_ENDIF_\n%s\nL_ENDIF_:\n", Boolean.toString(es), isucc); 
+	   RESULT = String.format("_t%s = %s\nIF not t_ JMP L_ENDIF_\n%s\nL_ENDIF_:\n", tempNum++, Boolean.toString(es), isucc); 
         :}
   ;
 
@@ -249,11 +282,11 @@ si_alors_sinon ::=
 tantque_repeter ::=
     TANT_QUE expr_succ:es REPETER inst_succ:isucc FIN_TANT_QUE
        {:
-	   RESULT = String.format("L_TQ_:\nt_ = %s\nIF not t_ JMP L_END_TQ_\n%s\nJMP L_TQ_\nL_END_TQ_:\n", Boolean.toString(es), isucc);
+	   RESULT = String.format("L_TQ_:\n_t%s = %s\nIF not _t%s JMP L_END_TQ_\n%s\nJMP L_TQ_\nL_END_TQ_:\n", tempNum++, Boolean.toString(es), tempNum, isucc);
        :}
   | TANT_QUE comp_succ:cs REPETER inst_succ:isucc FIN_TANT_QUE
        {:
-	   RESULT = String.format("L_TQ_:\nt_ = %s\nIF not t_ JMP L_END_TQ_\n%s\nJMP L_TQ_\nL_END_TQ_:\n", "quelque chose qui vaut \"cs\"", isucc);
+	   RESULT = String.format("L_TQ_:\n_t%s = %s\nIF not _t%s JMP L_END_TQ_\n%s\nJMP L_TQ_\nL_END_TQ_:\n", tempNum++, "quelque chose qui vaut \"cs\"", tempNum, isucc);
        :}
   ;
 
@@ -261,11 +294,12 @@ tantque_repeter ::=
 repeter_tantque ::=
     REPETER inst_succ:isucc TANT_QUE expr_succ:es FIN_TANT_QUE
        {:
-	   RESULT = String.format("L_RTQ_:\n%s\nt_ = %s\nIF t_ JMP L_RTQ\n", isucc, Boolean.toString(es));
+	   RESULT = String.format("L_RTQ_:\n%s\n_t%s = %s\nIF t_ JMP L_RTQ\n", isucc, tempNum++, Boolean.toString(es));
        :}
   | REPETER inst_succ:isucc TANT_QUE comp_succ:cs FIN_TANT_QUE
        {:
-	   RESULT = String.format("L_RTQ_:\n%s\nt_ = %s\nIF t_ JMP L_RTQ\n", isucc, "quelque chose qui vaut \"cs\"");
+	   String cond = cs.substring(0, cs.indexOf('=')-1);
+	   RESULT = String.format("L_RTQ_:\n%s\n%s\nIF %s JMP L_RTQ\n", isucc, cs, cond);
        :}
   ;
 
@@ -273,7 +307,7 @@ repeter_tantque ::=
 pour_faire ::=
   POUR intervalle:inter FAIRE inst_succ:isucc FIN_POUR
       {:
-          RESULT = String.format("t_ = %s\nL_POUR_:\nIF t_ > %s JMP L_END_POUR\n%s\nt_ = t_ + 1\nJMP L_POUR_\nL_END_POUR:\n", Integer.toString(inter[0]), Integer.toString(inter[1]), isucc);
+          RESULT = String.format("_t%s = %s\nL_POUR_:\nIF t_ > %s JMP L_END_POUR\n%s\nt_ = t_ + 1\nJMP L_POUR_\nL_END_POUR:\n", tempNum++, Integer.toString(inter[0]), Integer.toString(inter[1]), isucc);
       :}
   ;
 

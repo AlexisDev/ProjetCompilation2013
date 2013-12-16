@@ -1,0 +1,36 @@
+#! Programme de test !#
+Debut
+	Entier  a : 8
+	Reel    r : 5.6  
+	Booleen b : faux
+	Chaine  c : "Banane flambée !"
+	Si vrai Alors
+	   Entier x : 0
+	   Entier y : 0
+	Sinon
+	   Si faux Alors
+       	      Entier z : 2
+	   Fin-si
+	   Entier x : 1
+	   Entier y : 1
+	Fin-si
+	Tantque vrai Repeter
+	   Chaine c2 : "Chaud cacao !"
+	Fin-tantque
+	a : 15
+	Repeter
+	   Chaine c3 : "Le tango corse..."
+	   a : a - 1
+	Tantque a > 8 Fin-tantque
+	Pour [1..8[ Faire
+	   Reel u : 5.4
+	   Reel v : 1e-8
+	Fin-pour
+	a : y + 8
+	z : 5.6 * (a + b)
+	Tableau(Booleen) tab(8)
+	Pointeur(Entier) p : @a
+	Chaine fin : "Houra !!!"
+Fin
+#! Fin du programme de test !#
+$EOF$

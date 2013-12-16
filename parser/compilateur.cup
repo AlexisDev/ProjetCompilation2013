@@ -2,11 +2,10 @@
 
 import java_cup.runtime.*;
 import java.lang.Number;
-import src.*;
 
 action code {:
-TableSymbole ts = new TableSymbole();
-Integer tempNum = new Integer(0);
+  TableSymbole ts = new TableSymbole();
+  Integer tempNum = new Integer(0);
 :}
 
 parser code {:
@@ -18,9 +17,7 @@ parser code {:
   public void unrecovered_syntax_error(Symbol cur_token) throws java.lang.Exception {
     report_fatal_error("Impossible de continuer l'analyse !", null);
   }
-
-  public void syso(String message) { System.out.println(message); }
-  
+ 
 :}
 
 // Terminaux non typés

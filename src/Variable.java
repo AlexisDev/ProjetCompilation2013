@@ -1,4 +1,3 @@
-package src;
 
 import java.lang.*;
 
@@ -14,5 +13,4 @@ public class Variable{
 		value = _value;
 		place = _place;
 	}
-
 }

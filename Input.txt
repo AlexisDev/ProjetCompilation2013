@@ -59,11 +59,8 @@ Debut
 	z : 5.6 * (a + b)
 	
 	Tableau(Booleen) tab(8)
-	
 	Pointeur(Entier) p : @a
-
+	Chaine final : "Houra !"
 Fin
-
 #! Fin du programme de test !#
-
 $EOF$
